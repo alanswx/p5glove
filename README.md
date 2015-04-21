@@ -4,7 +4,7 @@ OS/X Version of p5glove software that works with yosemite
 This is a mashup of Rajmil Fischman's MAES work: (see software tab) http://www.keele.ac.uk/music/people/rajmilfischman/
 
 The original code that Rajmil used:
-https://github.com/ezrec/libp5glove/tree/master/src
+https://github.com/ezrec/libp5glove
 
 And an update to the Mac USB code by a slight modification to this library:
 https://github.com/signal11/hidapi
