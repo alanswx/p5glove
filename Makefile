@@ -18,8 +18,7 @@ MAJOR = 1
 
 LIB_SOURCES = mac_hid.c p5glove.c p5gloveUtils.c
 LIB_OBJS = $(LIB_SOURCES:.c=.o)
-LIB_HFILES = SOIL.h image_DXT.h image_helper.h \
-  stbi_DDS_aug.h stbi_DDS_aug_c.h stb_image_aug.h
+LIB_HFILES = p5glove.h	p5gloveUtils.h
 LIB_AFILE = $(LIBNAME).a
 LIB_DYLIBFILE = $(LIBNAME).dylib
 LIB_INCLUDEDIR = opt/local/include/p5glove
