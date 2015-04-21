@@ -1,0 +1,52 @@
+#######################################
+# Makefile for P5GloveRF 32 and 64 bit
+#######################################
+
+# general macros 
+OPTIMISATIONS = -O3
+SHARED = -shared
+CC = gcc
+INSTALL_FILE = install -p -o root -g admin -m 644
+INSTALL_DIR = install -o root -g admin -d
+LN = ln -s
+RM = rm -fv
+
+
+LIBNAME = libp5glove
+VERSION = 1.0
+MAJOR = 1
+
+LIB_SOURCES = mac_hid.c p5glove.c p5gloveUtils.c
+LIB_OBJS = $(LIB_SOURCES:.c=.o)
+LIB_HFILES = SOIL.h image_DXT.h image_helper.h \
+  stbi_DDS_aug.h stbi_DDS_aug_c.h stb_image_aug.h
+LIB_AFILE = $(LIBNAME).a
+LIB_DYLIBFILE = $(LIBNAME).dylib
+LIB_INCLUDEDIR = opt/local/include/p5glove
+LIB_DIR = opt/local/lib
+LDFLAGS= -framework IOKit -framework CoreFoundation 
+
+
+  
+#P5 Test Program
+DUMP_INCLUDES = -I.
+DUMP_SOURCES = p5dumpRF.c
+DUMP_LIBS = -framework IOKit -framework CoreFoundation libp5glove.a
+
+#TARGETS
+all: lib p5DumpRF
+
+lib: $(LIB_OBJS)
+	# create static library
+	ar -cvq $(LIBNAME).a $(LIB_OBJS)
+	# create shared library
+	#gcc -dynamiclib -o $(LIB_DYLIBFILE) $(LIB_OBJS) $(LDFLAGS)\
+	# 	-install_name $(DESTDIR)/$(LIB_DIR)/$(LIB_DYLIBFILE)
+
+#P5 Test Program
+p5DumpRF: $(DUMP_SOURCES) $(LIBNAME).a
+	$(CC) $(OPTIMISATIONS) $(DUMP_INCLUDES) $(DUMP_SOURCES) $(DUMP_LIBS) -o p5DumpRF 
+
+clean:
+	rm -f *.o p5DumpRF *.a *.dylib
+
