@@ -1,0 +1,29 @@
+###########################################
+# Makefile for P5 Glove test 32 and 64 bit
+###########################################
+
+# general macros 
+OPTIMISATIONS = -O3
+SHARED = -shared
+CC32 = C:/MinGW/bin/gcc
+CC64 = C:/MinGw-64/bin/gcc
+
+#P5 Test Program
+DUMP_INCLUDES = -I.
+DUMP_SOURCES = win32_usb_hid.c p5glove.c p5dumpRF.c p5gloveUtils.c 
+DUMP_LIBS_32 = -LC:\MinGw\lib -lhid -lsetupapi
+DUMP_LIBS_64 = -LC:\MinGw-64\x86_64-w64-mingw32\lib -lhid -lsetupapi 
+
+#TARGETS
+all: p5DumpRF
+
+#P5 Test Program
+p5DumpRF32: $(DUMP_SOURCES)
+	$(CC32) $(OPTIMISATIONS) $(DUMP_INCLUDES) $(DUMP_SOURCES) $(DUMP_LIBS_32) -o p5DumpRF32.exe 
+
+p5DumpRF64: $(DUMP_SOURCES)
+	$(CC64) $(OPTIMISATIONS) $(DUMP_INCLUDES) $(DUMP_SOURCES) $(DUMP_LIBS_64) -o p5DumpRF64.exe
+
+clean:
+	rm -f *.o
+

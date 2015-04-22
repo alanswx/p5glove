@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include "hidapi.h"
 #include "p5glove.h"
 #include "P5gloveUtils.h"
 

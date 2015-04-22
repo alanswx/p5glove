@@ -23,13 +23,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-/*
 #ifdef __WIN32__
 #include "win32_usb_hid.h"
 #else
-#include <usb.h>
+#include "mac_hid.h"
+//#include <usb.h>
 #endif
-*/
+
 #ifndef P5GLOVE_H
 #define P5GLOVE_H
 
@@ -237,7 +237,12 @@ typedef struct p5glove {
 	unsigned char data[24],later[24];
 	char name[128];
 	CALIBRATION_DATA cal;
-    hid_device *usb;
+#ifdef __WIN32__
+    USBHIDHandle *usb;
+#else
+	struct usb_dev_handle *usb;
+	long long nextsamp;
+#endif
 } P5_GLOVE;
 
 typedef P5_GLOVE *P5GlovePtr;

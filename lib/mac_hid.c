@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "hidapi.h"
+#include "mac_hid.h"
 
 /* Barrier implementation because Mac OSX doesn't have pthread_barrier.
    It also doesn't have clock_gettime(). So much for POSIX and SUSv2.
@@ -1050,8 +1050,60 @@ HID_API_EXPORT const wchar_t * HID_API_CALL  hid_error(hid_device *dev)
 }
 
 
+/* compatibility */
+/*
+    Open the indexth USBHID device which match the delection criteria. The
+    selection criteria may be any combination of vendor id, product id and
+    version number as specified by the flags parameter.
 
+    Returns an open handle on success, or INVALID_USBHIDHANDLE if an error
+    occurred.
+*/
+USBHIDHandle OpenUSBHID( int index, int vendorId, int productId, int versionNumber, int flags )
+{
+    if (hid_init()) return NULL;
+    hid_device *usb = hid_open(vendorId,productId,versionNumber);
+    if( usb ){
+        hid_set_nonblocking(usb, 1);
+        return usb;
+    }
 
+    return NULL;	
+}
+/*
+    Close a USB HID handle previously opened with OpenUSBHID()
+*/
+void CloseUSBHID( USBHIDHandle handle )
+{
+     hid_device *usb = (hid_device *) handle;
+     if (handle != NULL)
+        hid_close(handle);
+      hid_exit();
+ 
+}
+int ReadUSBHID( USBHIDHandle handle, void *dest, int count )
+{
+     hid_device *usb = (hid_device *) handle;
+    if (handle) return hid_read(handle,dest,count);
+    else return -1;
+
+}
+int SetUSBHIDFeature( USBHIDHandle handle, char *report, int count )
+{
+     hid_device *usb = (hid_device *) handle;
+     return hid_send_feature_report( usb, report, count );
+
+}
+int GetUSBHIDFeature( USBHIDHandle handle, char *report, int count )
+{
+     hid_device *usb = (hid_device *) handle;
+     return hid_get_feature_report(usb, report, count);
+
+}
+/*
+    Debugging function, writes information about all USB HID devices to stdout.
+*/
+//void DumpUSBHIDDeviceInfo();
 
 
 
@@ -1116,4 +1168,8 @@ int main(void)
 
 	return 0;
 }
+
+
+
+
 #endif

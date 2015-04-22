@@ -27,7 +27,7 @@
 #include <math.h>
 #include <stdlib.h> /* exit */
 #include <string.h> /* memset */
-#include "hidapi.h"
+#include "mac_hid.h"
 #include "p5glove.h"
 #include "P5gloveUtils.h"
 

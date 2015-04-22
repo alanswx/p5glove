@@ -42,6 +42,40 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* compatibility layer AJS*/
+typedef void* USBHIDHandle;
+
+#define INVALID_USBHIDHANDLE_VALUE      (0)
+
+#define SELECT_VENDOR_ID_FLAG           (0x01)
+#define SELECT_PRODUCT_ID_FLAG          (0x02)
+#define SELECT_VERSION_NUMBER_FLAG      (0x04)
+
+
+/*
+    Open the indexth USBHID device which match the delection criteria. The
+    selection criteria may be any combination of vendor id, product id and
+    version number as specified by the flags parameter.
+
+    Returns an open handle on success, or INVALID_USBHIDHANDLE if an error
+    occurred.
+*/
+USBHIDHandle OpenUSBHID( int index, int vendorId, int productId, int versionNumber, int flags );
+/*
+    Close a USB HID handle previously opened with OpenUSBHID()
+*/
+void CloseUSBHID( USBHIDHandle handle );
+int ReadUSBHID( USBHIDHandle handle, void *dest, int count );
+int SetUSBHIDFeature( USBHIDHandle handle, char *report, int count );	// RF copied this from usb_hid.h by
+int GetUSBHIDFeature( USBHIDHandle handle, char *report, int count );	// RF copied this from usb_hid.h by 
+/*
+    Debugging function, writes information about all USB HID devices to stdout.
+*/
+void DumpUSBHIDDeviceInfo();
+
+
+
 		struct hid_device_;
 		typedef struct hid_device_ hid_device; /**< opaque hidapi structure */
 

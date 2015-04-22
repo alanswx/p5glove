@@ -33,7 +33,7 @@ DUMP_SOURCES = p5dumpRF.c
 DUMP_LIBS = -framework IOKit -framework CoreFoundation libp5glove.a
 
 #TARGETS
-all: lib p5DumpRF
+all: lib 
 
 lib: $(LIB_OBJS)
 	# create static library

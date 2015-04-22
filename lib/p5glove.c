@@ -28,7 +28,11 @@
 #include <stdlib.h> /* for calloc */
 #include <string.h> /* for memcpy */
 #include <stdint.h> /* for integer types */
-#include "hidapi.h"
+//#ifdef __WIN32__
+//#include "win32_usb_hid.h"
+//#else
+//#include <usb.h>
+//#endif
 #include <errno.h>
 #include "p5glove.h"
 
@@ -173,19 +177,13 @@ static void process_sample(struct p5glove *p5, struct p5glove_data *info)
 P5GlovePtr p5glove_open(void)
 {
     struct p5glove *p5;
-        if (hid_init())
-                return NULL;
-    hid_device *usb = hid_open(0x0d7f,0x100,NULL);
-#if 0
     USBHIDHandle *usb = OpenUSBHID (
             0,                                                  /* 0th matching device */
             0x0d7f,                                             /* vendor id */
             0x0100,                                             /* product id */
             0,                                                  /* version number (not used) */
             SELECT_VENDOR_ID_FLAG | SELECT_PRODUCT_ID_FLAG );   /* selection flags */
-#endif
-    if( usb ){
-        hid_set_nonblocking(usb, 1);
+    if( usb != INVALID_USBHIDHANDLE_VALUE ){
 
         p5 = calloc(1,sizeof(*p5));
         p5->usb = usb;
@@ -199,23 +197,22 @@ P5GlovePtr p5glove_open(void)
 void p5glove_close(P5GlovePtr p5)
 {
 	if (p5->usb != NULL)
-        hid_close(p5->usb);
+        CloseUSBHID(p5->usb);
 	p5->usb=NULL;
 	free(p5);
-      hid_exit();
 }
 
 int p5glove_sample(P5GlovePtr p5, struct p5glove_data *info)
 {
 	int err;
-
-    if (hid_read(p5->usb,p5->data, 24) ==24) {
-    //if( ReadUSBHID( p5->usb, p5->data, 24 ) == 24 ){
+	
+    if( ReadUSBHID( p5->usb, p5->data, 24 ) == 24 ){
         process_sample(p5, info);
         err = 0;
     }else{
         err = EACCES;
     }
+
     
 	return err;
 }
@@ -270,8 +267,7 @@ static int32_t get_bits_signed(uint8_t *data,int pos,int len)
 ///////////////////////////////
 // Calibration values
 ///////////////////////////////
-//static int p5g_parse_report6(P5GlovePtr p5,int8_t *buff)			// RF
-static int p5g_parse_report6(P5GlovePtr p5,unsigned char *buff)		// RF
+static int p5g_parse_report6(P5GlovePtr p5,int8_t *buff)
 {
 	/* We are given 32nds of a degree, so: */
 #define REPORT6_TO_RAD(x)	((x)/32.0*M_PI/180.0)
@@ -287,8 +283,7 @@ static int p5g_parse_report6(P5GlovePtr p5,unsigned char *buff)		// RF
 	return 0;
 }
 
-//static int p5g_parse_report12(P5GlovePtr p5,uint8_t *buff)		// RF
-static int p5g_parse_report12(P5GlovePtr p5,unsigned char *buff)	// RF
+static int p5g_parse_report12(P5GlovePtr p5,uint8_t *buff)
 {
 	int led,axis;
 
@@ -328,23 +323,20 @@ static int p5g_parse_report12(P5GlovePtr p5,unsigned char *buff)	// RF
 
 int p5glove_calibrate(P5GlovePtr p5)
 {
-	unsigned char report6_buff[6];		// RF
-	unsigned char report12_buff[255];	// RF
+	int8_t report6_buff[6];
+	int8_t report12_buff[255];
 	int err;
 
 	memset(&p5->cal,0,sizeof(p5->cal));
 	report12_buff[0]=12;
-        err  = hid_get_feature_report(p5->usb, report12_buff, sizeof(report12_buff));
-	//err=GetUSBHIDFeature(p5->usb,report12_buff,sizeof(report12_buff));
-
+	err=GetUSBHIDFeature(p5->usb,report12_buff,sizeof(report12_buff));
 	if (err < 0) goto end;
 
 	err=p5g_parse_report12(p5,report12_buff);
 	if (err < 0) goto end;
 
 	report6_buff[0]=6;
-	//err=GetUSBHIDFeature(p5->usb,report6_buff,sizeof(report6_buff));
-        err  = hid_get_feature_report(p5->usb, report6_buff, sizeof(report6_buff));
+	err=GetUSBHIDFeature(p5->usb,report6_buff,sizeof(report6_buff));
 	if (err < 0) goto end;
 
 	err=p5g_parse_report6(p5,report6_buff);
@@ -377,41 +369,32 @@ end:
 ///////////////////////////////
 void p5glove_begin_calibration(P5GlovePtr p5)
 {
-//    char report[2] = { 0x01, 0x01 };			// RF
-    unsigned char report[2] = { 0x01, 0x01 };	// RF
-    //SetUSBHIDFeature( p5->usb, report, 2 );
-    hid_send_feature_report( p5->usb, report, 2 );
+    char report[2] = { 0x01, 0x01 };
+    SetUSBHIDFeature( p5->usb, report, 2 );
 }
 
 void p5glove_end_calibration(P5GlovePtr p5)
 {
-//    char report[2] = { 0x01, 0x00 };			// RF
-    unsigned char report[2] = { 0x01, 0x00 };	// RF
-    //SetUSBHIDFeature( p5->usb, report, 2 );
-    hid_send_feature_report( p5->usb, report, 2 );
+    char report[2] = { 0x01, 0x00 };
+    SetUSBHIDFeature( p5->usb, report, 2 );
 }
 
 int p5glove_get_mouse_mode(P5GlovePtr p5)
 {
- //   char report[2] = { 0x05, 0x00 };			// RF
-    unsigned char report[2] = { 0x05, 0x00 };	// RF
-    //GetUSBHIDFeature( p5->usb, report, 2 );
-    hid_get_feature_report(p5->usb, report, 2);
+    char report[2] = { 0x05, 0x00 };
+    GetUSBHIDFeature( p5->usb, report, 2 );
+
     return (report[1] == 0x01)? 1 : 0;
 }
 
 void p5glove_mouse_mode_on(P5GlovePtr p5)
 {
-//    char report[2] = { 0x05, 0x01 };			// RF
-    unsigned char report[2] = { 0x05, 0x01 };	// RF
-    //SetUSBHIDFeature( p5->usb, report, 2 );
-    hid_send_feature_report( p5->usb, report, 2 );
+    char report[2] = { 0x05, 0x01 };
+    SetUSBHIDFeature( p5->usb, report, 2 );
 }
 
 void p5glove_mouse_mode_off(P5GlovePtr p5)
 {
-//    char report[2] = { 0x05, 0xFF };			// RF
-    unsigned char report[2] = { 0x05, 0xFF };	// RF
-    //SetUSBHIDFeature( p5->usb, report, 2 );
-    hid_send_feature_report( p5->usb, report, 2 );
+    char report[2] = { 0x05, 0xFF };
+    SetUSBHIDFeature( p5->usb, report, 2 );
 }
